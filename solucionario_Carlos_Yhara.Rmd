@@ -1,0 +1,99 @@
+---
+title: "Solucionario JNE Examen Parcial"
+author: "Carlos Crespin"
+date: "2026-05-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rio)
+library(dplyr)
+library(magritrr)
+library(openxlsx)
+```
+
+
+```{r}
+set.seed(123)
+linkData="https://github.com/krlos20203563/JNE_Examen_Parcial_Estadistica_pregrado/raw/refs/heads/main/EG2021_2V_Resultados_Presidencial.xlsx"
+jne <- openxlsx::read.xlsx(linkData, sheet = 2)
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+ratio_prov <- jne %>%
+  filter(`Organización.Política` %in% c(
+    "FUERZA POPULAR",
+    "PARTIDO POLITICO NACIONAL PERU LIBRE"
+  )) %>%
+  select(Region, Provincia, `Organización.Política`, `%.Votos`) %>%
+  
+  pivot_wider(
+    names_from = `Organización.Política`,
+    values_from = `%.Votos`
+  ) %>%
+  
+  mutate(
+    ratio_keiko_castillo = `FUERZA POPULAR` / 
+      `PARTIDO POLITICO NACIONAL PERU LIBRE`
+  )
+
+head(ratio_prov)
+```
+
+# Caso 3
+
+Pregunta 1
+
+```{r}
+ratio_prov %>%
+  summarise(
+    total_provincias = n(),
+    provincias_castillo = sum(ratio_keiko_castillo < 1, na.rm = TRUE),
+    porcentaje = mean(ratio_keiko_castillo < 1, na.rm = TRUE) * 100
+  )
+```
+
+Pregunta 2
+
+```{r}
+ratio_prov %>%
+  filter(Provincia == "CALLAO")
+```
+
+Pregunta 3
+
+```{r}
+ratio_prov %>%
+  arrange(ratio_keiko_castillo) %>%
+  head(10)
+```
+
+```{r}
+ratio_prov %>%
+  arrange(desc(ratio_keiko_castillo)) %>%
+  head(10)
+```
+
+
+```{r}
+export(ratio_prov, "jne_limpia.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
